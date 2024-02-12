@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Product {
@@ -10,7 +10,7 @@ export class Product {
   })
   title: string;
 
-  @Column('numeric', { default: 0 })
+  @Column('float', { default: 0 })
   price: number;
 
   @Column('text', { nullable: true })
@@ -27,4 +27,18 @@ export class Product {
 
   @Column('text')
   gender: string;
+
+  /* antes de la insercion nos fijamos si viene un slug sino le seteamos como slug el titulo
+  que es requerido, despues hace el remplazo de los espacios vacios en _ y ' a '' y remplazamos
+  todo. tb si viene un slug lo remplaza por _ y '' */
+  @BeforeInsert()
+  checkoSlugInsert() {
+    if (!this.slug) {
+      this.slug = this.title;
+    }
+    this.slug = this.slug
+      .toLocaleLowerCase()
+      .replaceAll(' ', '_')
+      .replaceAll("'", '');
+  }
 }
