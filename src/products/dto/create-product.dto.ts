@@ -33,8 +33,13 @@ export class CreateProductDto {
 
   @IsString({ each: true }) //cada uno de los elemnt del arreglo debe ser string
   @IsArray()
+  @IsOptional()
   sizes: string[];
 
   @IsIn(['men', 'woman', 'kid', 'inisex'])
   gender: string;
+
+  @IsString({ each: true }) //cada uno de los elemnt del arreglo debe ser string
+  @IsArray()
+  tags: string[];
 }
