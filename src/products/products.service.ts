@@ -7,11 +7,12 @@ import {
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from '../common/dtos/pagination.dtos';
 import { validate as isUUID } from 'uuid';
 import { ProductImage, Product } from './entities';
+import { query } from 'express';
 
 @Injectable()
 export class ProductsService {
@@ -21,6 +22,8 @@ export class ProductsService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(ProductImage)
     private readonly productImageRepository: Repository<ProductImage>,
+
+    private readonly dataSource: DataSource, //para usar el query runner
   ) {}
 
   async create(createProductDto: CreateProductDto) {
@@ -43,13 +46,22 @@ export class ProductsService {
     }
   }
 
-  findAll(paginationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    return this.productRepository.find({
+    const product = await this.productRepository.find({
       take: limit,
       skip: offset,
-      //TODO: relaciones
+      // mostramos las relaciones de la otra tabla de product_image
+      relations: {
+        images: true,
+      },
     });
+
+    /* retornamos las img sin formato de objetos con id */
+    return product.map((product) => ({
+      ...product,
+      images: product.images.map((img) => img.url),
+    }));
   }
 
   async findOne(term: string) {
@@ -60,13 +72,14 @@ export class ProductsService {
     } else {
       /* crea un queryBuilder para hacer la busqueda de title  y slug devolviendo el primer
       alemento */
-      const queryBuilder = this.productRepository.createQueryBuilder();
+      const queryBuilder = this.productRepository.createQueryBuilder('prod');
       product = await queryBuilder
         // aqui pone en mayuscula UPPER todas las letra de title
         .where('UPPER(title) =:title or slug=:slug', {
           title: term.toUpperCase(), //mayuscula
           slug: term.toLowerCase(), //minuscula
         })
+        .leftJoinAndSelect('prod.images', 'prodImages')
         .getOne();
     }
 
@@ -75,21 +88,53 @@ export class ProductsService {
     return product;
   }
 
+  /* metodo creado para devolver las img sin id  llama al fondOne de arriba*/
+  async findOnePlain(term: string) {
+    const { images = [], ...rest } = await this.findOne(term);
+    return {
+      ...rest,
+      images: images.map((img) => img.url), // no devuelvo el id
+    };
+  }
+
   async update(id: string, updateProductDto: UpdateProductDto) {
+    const { images, ...toUpdate } = updateProductDto;
+
     const product = await this.productRepository.preload({
-      id: id,
-      ...updateProductDto,
-      images: [],
+      id,
+      ...toUpdate,
     });
 
     if (!product) {
       throw new NotFoundException(`Product with id:${id} not found`);
     }
 
+    /* create query runner */
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect(); //conecta
+    await queryRunner.startTransaction(); //inicia la transacciones
+
     try {
-      await this.productRepository.save(product);
-      return product;
+      if (images) {
+        /* borra de la tabla de productImage el product que tenga el id de product q estamos
+        queriendo actualizar*/
+        await queryRunner.manager.delete(ProductImage, { product: { id } });
+
+        /* guarda en la tabla product image las imagenes pero todavia no impacta la tabla */
+        product.images = images.map((image) =>
+          this.productImageRepository.create({ url: image }),
+        );
+      }
+
+      await queryRunner.manager.save(product); //guarda parcialmente
+      await queryRunner.commitTransaction(); //aplica los cambios a la tabla
+      await queryRunner.release(); //desconect
+
+      /* devolvemos los datos actualizado co la funcion findOnePlain */
+      return this.findOnePlain(id);
     } catch (error) {
+      await queryRunner.rollbackTransaction(); // si hay error vuelve atras
+      await queryRunner.release(); //se vuelve a desconectar del queryruner
       this.handleDBExeptions(error);
     }
   }
