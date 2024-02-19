@@ -154,4 +154,14 @@ export class ProductsService {
       'Uneexpected error, check server logs',
     );
   }
+
+  /* Delete all products */
+  async deleteAllProduct() {
+    const query = this.productRepository.createQueryBuilder('product');
+    try {
+      return await query.delete().where({}).execute(); //delete todo los productos
+    } catch (error) {
+      this.handleDBExeptions(error);
+    }
+  }
 }
