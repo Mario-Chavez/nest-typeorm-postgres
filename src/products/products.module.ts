@@ -4,11 +4,13 @@ import { ProductsController } from './products.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { Product, ProductImage } from './entities';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   controllers: [ProductsController],
   providers: [ProductsService],
-  imports: [TypeOrmModule.forFeature([Product, ProductImage])], // importamos la entity
+  /*  importamos la entity y el auth module para ara hacer uso de la rutas autentic/authoriza */
+  imports: [TypeOrmModule.forFeature([Product, ProductImage]), AuthModule],
   exports: [ProductsService, TypeOrmModule],
 })
 export class ProductsModule {}
