@@ -23,7 +23,7 @@ export class SeedService {
     cada producto que nos viene en initial data */
     products.forEach((product) => {
       //guarda cada product en la tabla e inserta en insertPromise
-      insertPromises.push(this.productService.create(product));
+      // insertPromises.push(this.productService.create(product));
     });
     await Promise.all(insertPromises); //esperamos que se inserte la data inicial  en insertPromise
 

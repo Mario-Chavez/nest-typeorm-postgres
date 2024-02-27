@@ -3,10 +3,12 @@ import {
   BeforeUpdate,
   Column,
   Entity,
+  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { ProductImage } from './product-image.entity';
+import { User } from '../../auth/entities/user.entity';
 
 @Entity({ name: 'products' })
 export class Product {
@@ -44,6 +46,9 @@ export class Product {
     eager: true, //muestrala relaciones de otra tabla
   })
   images?: ProductImage[];
+
+  @ManyToOne(() => User, (user) => user.product, { eager: true })
+  user: User;
 
   /* antes de la insercion nos fijamos si viene un slug sino le seteamos como slug el titulo
   que es requerido, despues hace el remplazo de los espacios vacios en _ y ' a '' y remplazamos

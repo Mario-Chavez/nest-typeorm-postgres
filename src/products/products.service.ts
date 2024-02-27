@@ -12,7 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { PaginationDto } from '../common/dtos/pagination.dtos';
 import { validate as isUUID } from 'uuid';
 import { ProductImage, Product } from './entities';
-import { query } from 'express';
+import { User } from '../auth/entities/user.entity';
 
 @Injectable()
 export class ProductsService {
@@ -26,12 +26,13 @@ export class ProductsService {
     private readonly dataSource: DataSource, //para usar el query runner
   ) {}
 
-  async create(createProductDto: CreateProductDto) {
+  async create(createProductDto: CreateProductDto, user: User) {
     try {
       /* traemos una instancia de createProductDto y le agregamos las images */
       const { images = [], ...productDetails } = createProductDto;
       const product = this.productRepository.create({
         ...productDetails,
+        user, //id del user q crea
         /* creamos en la tabla productImage las  imagenes que nos pasan en el create   
         typeOrm guarda automaticamente el id del producto en la tabla de product-image*/
         images: images.map(
@@ -97,7 +98,7 @@ export class ProductsService {
     };
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto) {
+  async update(id: string, updateProductDto: UpdateProductDto, user: User) {
     const { images, ...toUpdate } = updateProductDto;
 
     const product = await this.productRepository.preload({
@@ -125,7 +126,7 @@ export class ProductsService {
           this.productImageRepository.create({ url: image }),
         );
       }
-
+      product.user = user; //user que viene del GetUser()
       await queryRunner.manager.save(product); //guarda parcialmente
       await queryRunner.commitTransaction(); //aplica los cambios a la tabla
       await queryRunner.release(); //desconect
