@@ -34,6 +34,17 @@ export class AuthController {
   loginUser(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
   }
+
+  /* realiza un nuevo token */
+  @Get('check-status')
+  @Auth()
+  checkAuthStatus(
+    /* mandamos el user */
+    @GetUser() user: User,
+  ) {
+    return this.authService.checkAuthStatus(user);
+  }
+
   @Get('private')
   @UseGuards(AuthGuard()) // el authGuad utiliza la strategia que hicimos en jwt.strategy
   testingPrivateRoute(

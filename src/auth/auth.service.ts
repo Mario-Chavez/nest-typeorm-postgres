@@ -42,6 +42,14 @@ export class AuthService {
     }
   }
 
+  /* devuelve un nuevo token */
+  async checkAuthStatus(user: User) {
+    return {
+      ...user,
+      token: this.getJwtToken({ id: user.id }),
+    };
+  }
+
   async login(loginUserDto: LoginUserDto) {
     const { password, email } = loginUserDto;
 
