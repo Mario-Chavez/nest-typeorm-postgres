@@ -47,6 +47,7 @@ export class Product {
   })
   images?: ProductImage[];
 
+  /* utilizamos la tabla User, user.product es donde se va a relacionar*/
   @ManyToOne(() => User, (user) => user.product, { eager: true })
   user: User;
 

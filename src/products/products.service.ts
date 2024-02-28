@@ -126,7 +126,7 @@ export class ProductsService {
           this.productImageRepository.create({ url: image }),
         );
       }
-      product.user = user; //user que viene del GetUser()
+      product.user = user; //user que viene del GetUser del controller()
       await queryRunner.manager.save(product); //guarda parcialmente
       await queryRunner.commitTransaction(); //aplica los cambios a la tabla
       await queryRunner.release(); //desconect

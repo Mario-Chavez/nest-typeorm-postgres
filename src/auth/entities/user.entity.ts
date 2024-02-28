@@ -31,6 +31,7 @@ export class User {
   })
   roles: string[];
 
+  /*marcamos la tabla Product,  product.user es donde se va a relacionar*/
   @OneToMany(() => Product, (product) => product.user)
   product: Product;
 
