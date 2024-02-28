@@ -31,14 +31,14 @@ export class SeedService {
 
   /* inserta y crea los usuario que viene del seedData */
   private async insertUsers() {
-    const seeUsers = initialData.users;
+    const seedUsers = initialData.users;
 
     const users: User[] = [];
 
-    seeUsers.forEach((user) => {
+    seedUsers.forEach((user) => {
       users.push(this.userRepository.create(user));
     });
-    const dbUser = await this.userRepository.save(seeUsers);
+    const dbUser = await this.userRepository.save(seedUsers);
     return dbUser[0]; //devuelve el primer user q es administrador
   }
 
