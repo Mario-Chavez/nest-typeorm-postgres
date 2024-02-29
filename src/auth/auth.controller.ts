@@ -11,7 +11,7 @@ import {
   Headers,
   SetMetadata,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from './dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -28,11 +28,22 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @ApiBody({ type: [CreateUserDto] }) // documentacion
+  @ApiResponse({
+    status: 201,
+    description: 'User was created',
+  })
+  @ApiResponse({ status: 400, description: 'Bad request' })
   create(@Body() createUserDto: CreateUserDto) {
     return this.authService.create(createUserDto);
   }
 
   @Post('login')
+  @ApiBody({ type: [LoginUserDto] }) // documentacion
+  @ApiResponse({
+    status: 401,
+    description: 'Credetial are not valid (email) or password',
+  })
   loginUser(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
   }
