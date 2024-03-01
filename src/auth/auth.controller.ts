@@ -28,7 +28,6 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @ApiBody({ type: [CreateUserDto] }) // documentacion
   @ApiResponse({
     status: 201,
     description: 'User was created',
@@ -39,7 +38,6 @@ export class AuthController {
   }
 
   @Post('login')
-  @ApiBody({ type: [LoginUserDto] }) // documentacion
   @ApiResponse({
     status: 401,
     description: 'Credetial are not valid (email) or password',
