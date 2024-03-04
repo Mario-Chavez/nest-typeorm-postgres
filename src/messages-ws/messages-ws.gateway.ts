@@ -34,9 +34,28 @@ export class MessagesWsGateway
     );
   }
 
+  /* escucha los mensajes */
   @SubscribeMessage('message-from-client')
   handleMessageFromClient(client: Socket, payload: NewMessageDto) {
     const clientId = client.id;
-    console.log({ clientId, payload });
+
+    // Emite unicamente al cliente q manda msj
+    //   client.emit('message-from-server', {
+    //     fullName: 'Nombre del cliente',
+    //     message: payload.message || 'no-message',
+    //   });
+    // }
+
+    /* Emite a todos  Menos al  cliente que escribio */
+    // client.broadcast.emit('message-from-server', {
+    //   fullName: 'Nombre del cliente',
+    //   message: payload.message || 'no-message',
+    // });
+
+    /* Emite a todos los clientes  */
+    this.wss.emit('message-from-server', {
+      fullName: 'Nombre del cliente',
+      message: payload.message || 'no-message',
+    });
   }
 }
